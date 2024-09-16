@@ -2,12 +2,10 @@ import pygame
 import random
 import sys
 
-# Initialize Pygame
 pygame.init()
 
-# Constants for screen and grid size
 SCREEN_WIDTH, SCREEN_HEIGHT = 600, 600
-GRID_SIZE = 100  # 20x20 grid for the maze
+GRID_SIZE = 50  # 20x20 grid for the maze
 CELL_SIZE = SCREEN_WIDTH // GRID_SIZE
 FPS = 60
 
@@ -20,14 +18,11 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 WALL = '#'
 
-# Set up the display (initially windowed)
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption("Maze Generation and Solver Visualization")
 
-# Clock for frame control
 clock = pygame.time.Clock()
 
-# Font setup for text inside cells
 font = pygame.font.SysFont(None, 24)
 
 def toggle_fullscreen():
@@ -59,7 +54,6 @@ class MazeGenerator:
             walls.remove(wall)
             self.draw_maze_step()
 
-        # Set the start and end points
         self.grid[0][0] = ' '
         self.grid[self.rows - 1][self.cols - 1] = ' '
 
@@ -127,31 +121,25 @@ class MazeSolver:
             print("No solution found.")
 
     def dfs(self, x, y, end_x, end_y, screen, offset_x, offset_y):
-        # Check if out of bounds or visited or it's a wall
         if x < 0 or y < 0 or x >= len(self.maze[0]) or y >= len(self.maze) or self.visited[y][x] or self.maze[y][x] == WALL:
             return False
 
-        # Mark the current position as visited and add to the solution path
         self.visited[y][x] = True
         self.solution.append((x, y))
 
-        # Visualize the current position being visited
         pygame.draw.rect(screen, GREEN, (offset_x + x * CELL_SIZE, offset_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         pygame.display.update()
         pygame.time.delay(50)
 
-        # Check if we reached the end
         if x == end_x and y == end_y:
             return True
 
-        # Explore the neighbors (North, South, East, West)
         if (self.dfs(x + 1, y, end_x, end_y, screen, offset_x, offset_y) or  # Right
             self.dfs(x - 1, y, end_x, end_y, screen, offset_x, offset_y) or  # Left
             self.dfs(x, y + 1, end_x, end_y, screen, offset_x, offset_y) or  # Down
             self.dfs(x, y - 1, end_x, end_y, screen, offset_x, offset_y)):   # Up
             return True
 
-        # Backtrack if no solution found
         self.solution.pop()
         pygame.draw.rect(screen, RED, (offset_x + x * CELL_SIZE, offset_y + y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
         pygame.display.update()
@@ -164,20 +152,16 @@ def main():
     maze_gen = MazeGenerator(GRID_SIZE, GRID_SIZE)
     maze_gen.generate_maze()
 
-    # Set up solver for the generated maze
     solver = MazeSolver(maze_gen.grid)
 
     running = True
     fullscreen = False
 
-    # Player starting position (top-left corner)
     player_pos = [0, 0]
 
-    # Set a speed for movement delay (in milliseconds)
     move_delay = 150  # 150ms delay between movements
     last_move_time = 0
 
-    # Solve the maze and display the solution path
     solver.solve_maze(0, 0, GRID_SIZE - 1, GRID_SIZE - 1, screen, 0, 0)
 
     while running:
@@ -186,20 +170,15 @@ def main():
                 running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_f:
-                    # Toggle fullscreen when 'f' is pressed
                     toggle_fullscreen()
 
-        # Get the current time in milliseconds
         current_time = pygame.time.get_ticks()
 
-        # Get current screen size
         current_width, current_height = screen.get_size()
 
-        # Calculate offsets to center the grid in fullscreen mode
         offset_x = (current_width - SCREEN_WIDTH) // 2
         offset_y = (current_height - SCREEN_HEIGHT) // 2
 
-        # Handle key presses for continuous movement
         keys = pygame.key.get_pressed()
 
         if current_time - last_move_time > move_delay:  # Check if enough time has passed since the last move
@@ -220,17 +199,13 @@ def main():
                     player_pos[0] += 1
                     last_move_time = current_time
 
-        # Fill the screen with white
         screen.fill(WHITE)
 
-        # Draw the maze
         maze_gen.draw_maze(offset_x, offset_y)
 
-        # Draw the player (red square)
         player_rect = pygame.Rect(offset_x + player_pos[0] * CELL_SIZE, offset_y + player_pos[1] * CELL_SIZE, CELL_SIZE, CELL_SIZE)
         pygame.draw.rect(screen, RED, player_rect)
 
-        # Update the display
         pygame.display.flip()
 
         clock.tick(FPS)
